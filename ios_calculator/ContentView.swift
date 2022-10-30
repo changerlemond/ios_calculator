@@ -40,6 +40,8 @@ enum ButtonType: String {
             return "="
         case .plus :
             return "+"
+        case .minus :
+            return "-"
         case .multiple :
             return "X"
         case .devide :
@@ -57,7 +59,7 @@ enum ButtonType: String {
     
     var backgroundColor: Color {
         switch self {
-        case .first, .second, .third, .fourth, .fifth, .sixth, .seventh, .eighth, .nineth, .dot:
+        case .first, .second, .third, .fourth, .fifth, .sixth, .seventh, .eighth, .nineth, .zero, .dot:
             return Color("NumberButton")
         case .equal, .plus, .minus, .multiple, .devide:
             return Color.orange
@@ -70,7 +72,7 @@ enum ButtonType: String {
     
     var forgroundColor: Color {
         switch self {
-        case .first, .second, .third, .fourth, .fifth, .sixth, .seventh, .eighth, .nineth, .dot, .equal, .plus, .minus, .multiple, .devide:
+        case .first, .second, .third, .fourth, .fifth, .sixth, .seventh, .eighth, .nineth, .zero, .dot, .equal, .plus, .minus, .multiple, .devide:
             return Color.white
         case .percent, .opposite, .clear:
             return Color.black
@@ -85,12 +87,16 @@ struct ContentView: View {
     
     @State private var totalNumber: String = "0"
     
+    @State var tempNumber: Int = 0
+    
+    @State var operatorType: ButtonType = .clear
+    
     private let buttonData: [[ButtonType]] = [
         [.clear, .opposite, .percent, .devide],
         [.seventh, .eighth, .nineth, .multiple],
         [.fourth, .fifth, .sixth, .minus],
         [.first, .second, .third, .plus],
-        [.zero, .zero, .dot, .equal],
+        [.zero, .dot, .equal],
     ]
     
     var body: some View {
@@ -112,16 +118,49 @@ struct ContentView: View {
                         ForEach(line, id: \.self) {
                             item in
                             Button {
-                                if (totalNumber != "0" && item.backgroundColor == Color("NumberButton")) {
-                                    totalNumber += item.buttonDisplayName
-                                } else if (totalNumber == "0" && item.backgroundColor == Color("NumberButton")) {
-                                    totalNumber = item.buttonDisplayName
-                                } else if (item.buttonDisplayName == "C") {
-                                    totalNumber = "0"
+                                if (totalNumber == "0") {
+                                    if (item == .clear) {
+                                        totalNumber = "0"
+                                    } else if item == .plus || item == .minus || item == .multiple || item == .devide {
+                                        totalNumber = "Error"
+                                    }
+                                    else {
+                                        totalNumber = item.buttonDisplayName
+                                    }
+                                } else {
+                                    if (item == .clear) {
+                                        totalNumber = "0"
+                                    } else if item == .plus {
+                                        // 숫자를 저장
+                                        // 더하기를 한다
+                                        // 남은 숫자를 초기화 한다
+                                        tempNumber = Int(totalNumber) ?? 0
+                                        operatorType = .plus
+                                        totalNumber = "0"
+                                    } else if item == .multiple {
+                                        tempNumber = Int(totalNumber) ?? 0
+                                        operatorType = .multiple
+                                        totalNumber = "0"
+                                    } else if item == .minus {
+                                        tempNumber = Int(totalNumber) ?? 0
+                                        operatorType = .minus
+                                        totalNumber = "0"
+                                    } else if (item == .equal) {
+                                        if operatorType == .plus {
+                                            totalNumber = String((Int(totalNumber) ?? 0) + tempNumber)
+                                        } else if operatorType == .multiple {
+                                            totalNumber = String((Int(totalNumber) ?? 0) * tempNumber)
+                                        } else if operatorType == .minus {
+                                            totalNumber = String(tempNumber - (Int(totalNumber) ?? 0))
+                                        }
+                                    }
+                                    else {
+                                        totalNumber += item.buttonDisplayName
+                                    }
                                 }
                             } label: {
                                 Text(item.buttonDisplayName)
-                                    .frame(width: 80,
+                                    .frame(width: item == .some(.zero) ? 160 : 80,
                                            height: 80)
                                     .background(item.backgroundColor)
                                     .cornerRadius(40)
