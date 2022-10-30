@@ -91,6 +91,8 @@ struct ContentView: View {
     
     @State var operatorType: ButtonType = .clear
     
+    @State var isNotEditing: Bool = true
+    
     private let buttonData: [[ButtonType]] = [
         [.clear, .opposite, .percent, .devide],
         [.seventh, .eighth, .nineth, .multiple],
@@ -118,33 +120,36 @@ struct ContentView: View {
                         ForEach(line, id: \.self) {
                             item in
                             Button {
-                                if (totalNumber == "0") {
+                                if isNotEditing {
                                     if (item == .clear) {
                                         totalNumber = "0"
+                                        isNotEditing = true
                                     } else if item == .plus || item == .minus || item == .multiple || item == .devide {
                                         totalNumber = "Error"
                                     }
                                     else {
                                         totalNumber = item.buttonDisplayName
+                                        isNotEditing = false
                                     }
                                 } else {
                                     if (item == .clear) {
                                         totalNumber = "0"
+                                        isNotEditing = true
                                     } else if item == .plus {
                                         // 숫자를 저장
                                         // 더하기를 한다
                                         // 남은 숫자를 초기화 한다
                                         tempNumber = Int(totalNumber) ?? 0
                                         operatorType = .plus
-                                        totalNumber = "0"
+                                        isNotEditing = true
                                     } else if item == .multiple {
                                         tempNumber = Int(totalNumber) ?? 0
                                         operatorType = .multiple
-                                        totalNumber = "0"
+                                        isNotEditing = true
                                     } else if item == .minus {
                                         tempNumber = Int(totalNumber) ?? 0
                                         operatorType = .minus
-                                        totalNumber = "0"
+                                        isNotEditing = true
                                     } else if (item == .equal) {
                                         if operatorType == .plus {
                                             totalNumber = String((Int(totalNumber) ?? 0) + tempNumber)
@@ -160,8 +165,9 @@ struct ContentView: View {
                                 }
                             } label: {
                                 Text(item.buttonDisplayName)
-                                    .frame(width: item == .some(.zero) ? 160 : 80,
-                                           height: 80)
+                                    .bold()
+                                    .frame(width: calculateButtonWidth(button: item),
+                                           height: calculateButtonHeight(button: item))
                                     .background(item.backgroundColor)
                                     .cornerRadius(40)
                                     .foregroundColor(item.forgroundColor)
@@ -172,6 +178,19 @@ struct ContentView: View {
                 }
             }
         }
+    }
+    
+    private func calculateButtonWidth(button buttonType: ButtonType) -> CGFloat {
+        switch buttonType {
+        case .zero:
+            return (UIScreen.main.bounds.width - 5*10) / 4 * 2
+        default:
+            return ((UIScreen.main.bounds.width - 5*10) / 4)
+        }
+    }
+    
+    private func calculateButtonHeight(button: ButtonType) -> CGFloat {
+        return (UIScreen.main.bounds.width - 5*10) / 4
     }
 }
 
